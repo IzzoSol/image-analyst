@@ -114,8 +114,11 @@ def draw_robot_demo(img, style="classic"):
         # Arms
         arm_y = body_y + 30
         for side in [-1, 1]:
-            ax = body_x - 50 if side == -1 else body_x + body_w
-            draw.rounded_rectangle([ax, arm_y, ax + 50 * side, arm_y + 20],
+            if side == -1:
+                ax_start, ax_end = body_x - 50, body_x
+            else:
+                ax_start, ax_end = body_x + body_w, body_x + body_w + 50
+            draw.rounded_rectangle([min(ax_start, ax_end), arm_y, max(ax_start, ax_end), arm_y + 20],
                                   radius=10, fill=(39, 174, 96), outline=(26, 156, 84), width=2)
             hx = body_x - 55 if side == -1 else body_x + body_w + 55
             gradient_circle(draw, img, hx, arm_y + 10, 20, (46, 204, 113), (39, 174, 96))
