@@ -139,3 +139,57 @@ def multi_pass_shadow(img, x, y, w, h, corner_r=20, passes=3):
         )
         shadow = shadow.filter(ImageFilter.GaussianBlur(radius=4 + i * 2))
         img.paste(shadow, (0, 0), shadow)
+
+
+def draw_organic_limb(draw, img, start, end, width_start, width_end, 
+                      color_base, color_shadow, color_highlight, 
+                      bend=0, segments=20):
+    """Draw a limb with organic tapering and shading."""
+    sx, sy = start
+    ex, ey = end
+    
+    # Calculate perpendicular direction
+    dx = ex - sx
+    dy = ey - sy
+    length = math.sqrt(dx*dx + dy*dy)
+    if length == 0:
+        return
+    nx = -dy / length
+    ny = dx / length
+    
+    # Build outline points
+    left_points = []
+    right_points = []
+    
+    for i in range(segments + 1):
+        t = i / segments
+        # Position along limb
+        px = sx + dx * t
+        py = sy + dy * t
+        # Bend
+        px += bend * math.sin(t * math.pi) * nx
+        py += bend * math.sin(t * math.pi) * ny
+        # Width
+        w = width_start * (1 - t) + width_end * t
+        left_points.append((px + nx * w / 2, py + ny * w / 2))
+        right_points.append((px - nx * w / 2, py - ny * w / 2))
+    
+    # Fill
+    polygon = left_points + right_points[::-1]
+    draw.polygon(polygon, fill=color_base)
+    
+    # Shading gradient (shadow on one side)
+    for i in range(len(left_points) - 1):
+        t = i / (len(left_points) - 1)
+        w = width_start * (1 - t) + width_end * t
+        # Shadow side
+        shadow_color = tuple(int(color_base[j] * 0.7 + color_shadow[j] * 0.3) for j in range(3))
+        draw.line([left_points[i], left_points[i+1]], fill=shadow_color + (180,), width=2)
+    
+    # Highlight
+    for i in range(len(right_points) - 1):
+        t = i / (len(right_points) - 1)
+        hl_color = tuple(int(color_base[j] * 0.85 + color_highlight[j] * 0.15) for j in range(3))
+        draw.line([right_points[i], right_points[i+1]], fill=hl_color + (120,), width=1)
+
+
