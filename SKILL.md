@@ -1,10 +1,10 @@
 ---
 name: image-analyst
-description: Analyze, describe, and recreate images using code (Python PIL/Pillow, SVG, Canvas 2D). Use when you can't view images directly (no vision model), or when you need to extract colors, dimensions, pixel data, ASCII art, or draw illustrations programmatically. Includes tools for image analysis, color extraction, ASCII rendering, and code-based drawing.
+description: Analyze, describe, and recreate images using code (Python PIL/Pillow, SVG, Canvas 2D). Use when you can't view images directly (no vision model), or when you need to extract colors, dimensions, pixel data, ASCII art, or draw illustrations programmatically. Includes tools for image analysis, color extraction, ASCII rendering, and code-based drawing. Supports 6 art styles: 3d_render, pixel_art, sketch, flat_vector, chibi, watercolor. Model-agnostic — works with any AI model.
 license: MIT
 metadata:
   author: turtle
-  version: "1.0"
+  version: "2.0"
 compatibility: Requires Python 3.10+ with Pillow (PIL) installed. Optional: numpy for advanced analysis.
 ---
 
@@ -16,7 +16,8 @@ When you can't "see" an image (no vision model available), use code to break it 
 2. **ASCII Art Rendering** — Convert any image to text-based preview
 3. **Color Extraction** — Get dominant colors, histograms, color schemes
 4. **Code-Based Drawing** — Create images with Python PIL, SVG, Canvas 2D, CSS
-5. **Image Recreation** — Recreate or modify images based on analysis
+5. **Multi-Style Rendering** — Draw in 6 different art styles
+6. **Image Recreation** — Recreate or modify images based on analysis
 
 ## Quick Start
 
@@ -24,160 +25,131 @@ When you can't "see" an image (no vision model available), use code to break it 
 
 ```bash
 python scripts/analyze_image.py "path/to/image.jpg"
+python scripts/analyze_image.py "path/to/image.jpg" --ascii --width 80 --colors 16
 ```
 
-### Draw an image with code
+### Draw an image in any style
 
 ```bash
-python scripts/draw_with_pil.py --output "my-robot.png"
+python scripts/universal_draw.py --subject robot --style 3d_render --output robot.png
+python scripts/universal_draw.py --subject robot --style pixel_art --output robot_px.png --width 64 --height 64
+python scripts/universal_draw.py --subject robot --style sketch --output robot_sketch.png
+python scripts/universal_draw.py --subject robot --style watercolor --output robot_wc.png
+python scripts/universal_draw.py --subject robot --style flat_vector --output robot_fv.png
+python scripts/universal_draw.py --subject robot --style chibi --output robot_chibi.png
+python scripts/universal_draw.py --list-styles
 ```
 
 ### Convert image to ASCII
 
 ```bash
 python scripts/image_to_ascii.py "path/to/image.jpg" --width 80
+python scripts/image_to_ascii.py "path/to/image.jpg" --color --width 60
 ```
 
-## Tools & Methods
+## The 7 Fundamentals of Drawing (By The Book)
 
-### 1. Python PIL (Pillow) — Primary Drawing Tool
+### 1. Perspective
+- **1-Point**: Single vanishing point. Objects recede to one point on horizon.
+- **2-Point**: Two vanishing points. Most common for buildings/boxes.
+- **3-Point**: Three vanishing points. Dramatic angles, looking up/down.
+- **Key rule**: Parallel lines converge to vanishing points. The horizon line is at eye level.
 
-**Best for:** Character art, icons, sprites, illustrations with precise pixel control.
+### 2. Construction
+- Build complex forms from simple primitives (sphere, cube, cylinder, cone)
+- Start with largest shapes, add detail progressively
+- Use center lines and cross-contours to establish 3D form
+- **Rule**: Never draw detail before establishing the overall form
 
-```python
-from PIL import Image, ImageDraw, ImageFilter
+### 3. Gesture
+- Capture the "flow" and energy of a pose in 30 seconds
+- Use curved lines, not straight ones, for living subjects
+- Exaggerate the action line for dynamic poses
+- **Rule**: Gesture comes first, structure second
 
-# Create canvas
-img = Image.new('RGBA', (512, 512), (255, 255, 255, 255))
-draw = ImageDraw.Draw(img)
+### 4. Anatomy
+- **Human proportions**: Head = 1/8 of body height. Eyes at midline of head.
+- **Robot proportions**: Head = 1/4 to 1/3 of body. Eyes dominate face.
+- **Chibi proportions**: Head = 1/2 to 1/3 of body. Oversized eyes.
+- **Key**: Study the subject before drawing it
 
-# Draw shapes
-draw.ellipse([100, 100, 200, 200], fill=(46, 204, 113), outline=(26, 156, 84), width=3)
-draw.rounded_rectangle([50, 50, 250, 250], radius=20, fill=(39, 174, 96))
+### 5. Color & Light Theory
+- **Hue**: Position on color wheel (red, orange, yellow, green, blue, purple)
+- **Saturation**: Vividness (0% = gray, 100% = pure color)
+- **Value**: Lightness/darkness (0% = black, 100% = white)
+- **Lighting**: Key light (main), fill light (softens shadows), rim light (edges)
+- **Shadows**: Form shadow (on object), cast shadow (on surface), ambient occlusion (crevices)
 
-# Gradients (manual)
-for i in range(100):
-    color = (int(46 * (1 - i/100) + 26 * (i/100)), int(204 * (1 - i/100) + 156 * (i/100)), int(113 * (1 - i/100) + 84 * (i/100)))
-    draw.line([(100 + i, 100), (100 + i, 200)], fill=color)
+### 6. Composition
+- **Rule of Thirds**: Place key elements at 1/3 intersections
+- **Leading Lines**: Guide the eye through the image
+- **Negative Space**: Empty areas that define the subject
+- **Visual Weight**: Larger/darker elements feel heavier
+- **Focal Point**: Where the eye goes first
 
-# Shadows & glow
-shadow = Image.new('RGBA', img.size, (0, 0, 0, 0))
-sd = ImageDraw.Draw(shadow)
-sd.ellipse([105, 105, 205, 205], fill=(0, 0, 0, 60))
-shadow = shadow.filter(ImageFilter.GaussianBlur(radius=8))
-img.paste(shadow, (0, 0), shadow)
+### 7. Design
+- **Silhouette**: The shape should be recognizable as a black outline
+- **Contrast**: Light vs dark, big vs small, simple vs complex
+- **Rhythm**: Repeating elements create visual flow
+- **Unity**: Everything should feel like it belongs together
+- **Variety**: Enough difference to stay interesting
 
-# Save
-img.save("output.png")
-```
+## Art Styles (6 Supported)
 
-**Key capabilities:**
-- Shapes: ellipse, rectangle, polygon, line, arc, pieslice, chord
-- Rounded rectangles, bezier curves
-- Image filters: blur, sharpen, edge enhance, emboss
-- Color manipulation: convert, quantize, point operations
-- Text rendering with TrueType fonts
-- Alpha compositing and layering
+### 1. 3D Render (Pixar-like)
+- **Lighting**: 3-point (key, fill, rim) + ambient
+- **Shading**: Smooth gradients, specular highlights
+- **Materials**: Plastic (smooth), metal (reflective)
+- **Colors**: Saturated, vibrant
+- **Effects**: Depth of field, ambient occlusion
+- **Code**: Python PIL with gradient circles and Gaussian blur
 
-### 2. SVG — Vector Graphics
+### 2. Pixel Art
+- **Resolution**: 16×16, 32×32, 64×64, or 128×128
+- **Palette**: Limited (4-16 colors)
+- **Technique**: Nearest-neighbor scaling, no anti-aliasing
+- **Shading**: Hard edges, dithering for gradients
+- **Outline**: 1-pixel dark outline
+- **Code**: Python PIL with cell-based grid rendering
 
-**Best for:** Logos, icons, UI elements, scalable illustrations.
+### 3. Sketch/Pencil
+- **Lines**: Varied weight, hatching, cross-hatching
+- **Shading**: Graphite gradients, smudging
+- **Colors**: Monochrome or limited color
+- **Texture**: Paper grain, pencil marks
+- **Code**: SVG paths with varying stroke-width
 
-```svg
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
-  <!-- Gradients -->
-  <defs>
-    <radialGradient id="body" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#2ecc71"/>
-      <stop offset="100%" stop-color="#1a9c54"/>
-    </radialGradient>
-  </defs>
-  
-  <!-- Shapes -->
-  <circle cx="200" cy="200" r="100" fill="url(#body)" stroke="#1a9c54" stroke-width="3"/>
-  <rect x="150" y="150" width="100" height="100" rx="20" fill="#27ae60"/>
-  
-  <!-- Paths (bezier curves) -->
-  <path d="M 100 200 Q 200 100 300 200" stroke="#1a9c54" stroke-width="3" fill="none"/>
-  
-  <!-- Text -->
-  <text x="200" y="350" text-anchor="middle" font-size="24" fill="#27ae60">Robot</text>
-</svg>
-```
+### 4. Watercolor
+- **Edges**: Soft, bleeding boundaries
+- **Colors**: Transparent layers, wet-on-wet blending
+- **Texture**: Paper texture, granulation
+- **Technique**: Light washes first, dark details last
+- **Code**: Python PIL with alpha compositing and blur
 
-### 3. Canvas 2D — Browser Rendering
+### 5. Flat Vector/Illustration
+- **Shapes**: Clean geometric forms
+- **Colors**: Bold, flat (no gradients)
+- **Outlines**: Thick, consistent stroke
+- **Shadows**: Hard-edged, offset shapes
+- **Code**: SVG with solid fills
 
-**Best for:** Interactive art, animations, real-time visualizations.
+### 6. Chibi/Cute
+- **Proportions**: Head = 1/2 to 1/3 of body
+- **Eyes**: Large, expressive, sparkly
+- **Colors**: Pastel, soft
+- **Details**: Simplified, rounded
+- **Expression**: Exaggerated emotions
+- **Code**: Python PIL with large circles and soft colors
 
-```html
-<canvas id="canvas" width="512" height="512"></canvas>
-<script>
-const ctx = document.getElementById('canvas').getContext('2d');
+## Drawing Methods Comparison
 
-// Gradients
-const grad = ctx.createRadialGradient(256, 256, 0, 256, 256, 200);
-grad.addColorStop(0, '#2ecc71');
-grad.addColorStop(1, '#1a9c54');
-ctx.fillStyle = grad;
-ctx.fillRect(0, 0, 512, 512);
-
-// Shapes with shadows
-ctx.shadowColor = 'rgba(0,0,0,0.3)';
-ctx.shadowBlur = 10;
-ctx.shadowOffsetX = 5;
-ctx.shadowOffsetY = 5;
-ctx.fillStyle = '#27ae60';
-ctx.beginPath();
-ctx.arc(256, 256, 100, 0, Math.PI * 2);
-ctx.fill();
-
-// Animation loop
-function animate() {
-  ctx.clearRect(0, 0, 512, 512);
-  // redraw...
-  requestAnimationFrame(animate);
-}
-animate();
-</script>
-```
-
-### 4. CSS Art — Pure CSS
-
-**Best for:** Simple icons, decorative elements, animated UI components.
-
-```css
-.robot {
-  width: 200px;
-  height: 200px;
-  background: linear-gradient(135deg, #2ecc71, #1a9c54);
-  border-radius: 30px;
-  position: relative;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-}
-
-.robot::before {
-  content: '';
-  position: absolute;
-  top: 40px;
-  left: 40px;
-  width: 40px;
-  height: 40px;
-  background: white;
-  border-radius: 50%;
-  box-shadow: 80px 0 0 white;
-}
-
-.robot::after {
-  content: '';
-  position: absolute;
-  top: 100px;
-  left: 50px;
-  width: 100px;
-  height: 4px;
-  background: #1a9c54;
-  border-radius: 2px;
-}
-```
+| Method | Best For | Pros | Cons |
+|--------|----------|------|------|
+| **Python PIL** | Character art, icons, sprites | Full pixel control, gradients, filters | Requires Python |
+| **SVG** | Logos, icons, UI | Scalable, small files, editable | No pixel effects |
+| **Canvas 2D** | Interactive, animated | Real-time, browser-based | Needs browser |
+| **CSS Art** | Simple icons, UI | No image files, responsive | Limited complexity |
+| **Three.js** | 3D scenes | True 3D, lighting | Heavy, steep curve |
 
 ## Image Analysis Techniques
 
@@ -185,15 +157,10 @@ animate();
 
 ```python
 from PIL import Image
-from collections import Counter
-
 img = Image.open("photo.jpg")
-# Quantize to N colors
 quantized = img.quantize(colors=8)
 palette = quantized.getpalette()
-
-# Get color counts
-colors = quantized.getcolors(maxcolors=1000000)
+colors = quantized.getcolors(maxcolors=10000000)
 colors.sort(reverse=True)
 for count, idx in colors[:8]:
     r, g, b = palette[idx*3:idx*3+3]
@@ -204,13 +171,11 @@ for count, idx in colors[:8]:
 
 ```python
 from PIL import Image
-
 img = Image.open("photo.jpg").convert('L')
 width = 80
 aspect = img.height / img.width
-height = int(width * aspect * 0.5)  # Adjust for char aspect ratio
+height = int(width * aspect * 0.5)
 img = img.resize((width, height))
-
 chars = " .:-=+*#%@"
 for y in range(height):
     line = ""
@@ -221,93 +186,116 @@ for y in range(height):
     print(line)
 ```
 
-### Extract Image Metadata
-
-```python
-from PIL import Image
-
-img = Image.open("photo.jpg")
-print(f"Size: {img.size}")
-print(f"Mode: {img.mode}")
-print(f"Format: {img.format}")
-print(f"Info: {img.info}")
-
-# EXIF data
-exif = img._getexif()
-if exif:
-    for tag, value in exif.items():
-        print(f"{tag}: {value}")
-```
-
 ### Edge Detection
 
 ```python
 from PIL import Image, ImageFilter
-
 img = Image.open("photo.jpg").convert('L')
 edges = img.filter(ImageFilter.FIND_EDGES)
 edges.save("edges.png")
-
-# Or use contour
-contour = img.filter(ImageFilter.CONTOUR)
-contour.save("contour.png")
 ```
 
-### Color Histogram
+## Model-Agnostic Approach
 
-```python
-from PIL import Image
+This system works **no matter what AI model** you're using because:
 
-img = Image.open("photo.jpg").convert('RGB')
-# Get histogram for each channel
-r_hist = img.histogram()[0:256]
-g_hist = img.histogram()[256:512]
-b_hist = img.histogram()[512:768]
+1. **Pure Python** — No API calls, no external services, no model dependencies
+2. **Deterministic** — Same input always produces same output
+3. **Self-contained** — Only requires Pillow (PIL)
+4. **Readable** — Code is the documentation
+5. **Extensible** — Add new styles by adding new renderers
+6. **Portable** — Runs on any platform with Python
 
-# Find peak colors
-for channel, hist in [("R", r_hist), ("G", g_hist), ("B", b_hist)]:
-    peak = max(range(256), key=lambda i: hist[i])
-    print(f"{channel} channel peak: {peak} (count: {hist[peak]})")
+The AI model's job is to:
+1. Understand what to draw (subject, pose, details)
+2. Choose the style
+3. Generate or call the Python code
+4. Execute it
+
+The drawing engine's job is to:
+1. Render the subject in the chosen style
+2. Apply fundamentals (proportion, lighting, composition)
+3. Output a clean image file
+
+## Proportion Guides
+
+### Human (8 heads tall)
+```
+Head: 1 unit
+Neck to shoulders: 0.5 units
+Torso: 2.5 units
+Legs: 4 units
+Total: 8 units
 ```
 
-## Drawing Best Practices
+### Robot (4-5 heads tall)
+```
+Head: 1 unit (large, expressive)
+Neck: 0.25 units
+Torso: 1.5 units
+Arms: 1.5 units (shoulder to fingertips)
+Legs: 1.5 units (hip to foot)
+Total: 4.5-5 units
+```
 
-1. **Use RGBA mode** for transparency and layering
-2. **Draw shadows first**, then main shapes, then highlights
-3. **Use Gaussian blur** for soft shadows and glows
-4. **Layer with paste()** for compositing effects
-5. **Quantize colors** for consistent palettes
-6. **Use anti-aliasing** — PIL's default drawing is already anti-aliased
-7. **Save as PNG** for lossless quality with transparency
-8. **Use `ImageFilter`** for post-processing (blur, sharpen, edge detect)
+### Chibi (3 heads tall)
+```
+Head: 1.5 units (oversized)
+Body: 1 unit (small)
+Legs: 0.5 units (stubby)
+Total: 3 units
+```
 
-## Common Pitfalls
+## Quick Reference: Drawing Checklist
 
-- Forgetting to convert to RGBA before compositing
-- Not accounting for character aspect ratio in ASCII art (chars are ~2x taller than wide)
-- Using JPEG for images with transparency (use PNG instead)
-- Not using `ImageFilter.GaussianBlur` for soft effects
-- Drawing in the wrong order (shadows should be behind main shapes)
+Before finishing any drawing, verify:
+- [ ] Silhouette is recognizable
+- [ ] Proportions are correct for the style
+- [ ] Lighting is consistent (single light source)
+- [ ] Shadows fall in the right direction
+- [ ] Colors harmonize (use color wheel)
+- [ ] Composition has a clear focal point
+- [ ] Details are appropriate for the resolution
+- [ ] Edges are consistent (hard or soft, not mixed randomly)
+- [ ] The image reads well at thumbnail size
+- [ ] No unnecessary elements (every stroke has a purpose)
 
-## Workflow
+## Tools
 
-1. **Analyze** the source image (colors, dimensions, content area)
-2. **Plan** the drawing (sketch the structure, identify key shapes)
-3. **Draw** base shapes (body, head, etc.)
-4. **Add details** (eyes, mouth, accessories)
-5. **Apply effects** (shadows, highlights, glows)
-6. **Post-process** (blur, sharpen, adjust)
-7. **Save** and verify
+### `analyze_image.py` — Image Analysis
+```bash
+python scripts/analyze_image.py <image_path> [--colors N] [--ascii] [--width W] [--json]
+```
 
-## Related Skills
+### `image_to_ascii.py` — ASCII Art Converter
+```bash
+python scripts/image_to_ascii.py <image_path> [--width 80] [--chars "..."] [--invert] [--color] [--output file.txt]
+```
 
-- `pixel-art` — Pixel art techniques and sprite creation
-- `digital-painting` — Digital painting techniques
-- `illustration` — Illustration principles
-- `character-art` — Character design
-- `color-theory` — Color theory and palette creation
-- `svg` — SVG graphics
-- `canvas-developer` — Canvas 2D rendering
+### `universal_draw.py` — Multi-Style Drawing Engine
+```bash
+python scripts/universal_draw.py --subject robot --style 3d_render --output robot.png [--width 512] [--height 512]
+python scripts/universal_draw.py --list-styles
+```
+
+### `draw_with_pil.py` — Drawing Template with Reusable Functions
+```bash
+python scripts/draw_with_pil.py --demo robot --output robot.png [--width 512] [--height 640]
+```
+
+## Requirements
+
+- Python 3.10+
+- Pillow (PIL) 9.0+
+- Optional: numpy for advanced analysis
+
+## License
+
+MIT — Use freely, modify, distribute.
+
+## Author
+
+Created by TURTLE (SHADDAI council) — UI/UX & Creative agent.
 
 ---
 *:23*:
