@@ -193,3 +193,63 @@ def draw_organic_limb(draw, img, start, end, width_start, width_end,
         draw.line([right_points[i], right_points[i+1]], fill=hl_color + (120,), width=1)
 
 
+
+
+def shade_volume(img, cx, cy, rx, ry, base_color, light_dir, 
+                 ambient=0.2, diffuse=0.6, specular=0.2, shininess=16):
+    """Shade an elliptical volume with proper light physics."""
+    draw = ImageDraw.Draw(img)
+    for y in range(cy - ry, cy + ry + 1):
+        for x in range(cx - rx, cx + rx + 1):
+            dx = (x - cx) / max(1, rx)
+            dy = (y - cy) / max(1, ry)
+            dist = math.sqrt(dx*dx + dy*dy)
+            if dist <= 1.0:
+                # Surface normal (ellipsoid)
+                nz = math.sqrt(max(0, 1 - dx*dx - dy*dy))
+                # Light direction
+                lx, ly, lz = light_dir
+                mag = math.sqrt(lx*lx + ly*ly + lz*lz)
+                lx, ly, lz = lx/mag, ly/mag, lz/mag
+                # Diffuse (Lambert)
+                ndotl = max(0, dx * lx + dy * ly + nz * lz)
+                # Specular (Blinn-Phong)
+                hx = lx + 0  # view dir is (0,0,1)
+                hy = ly + 0
+                hz = lz + 1
+                hmag = math.sqrt(hx*hx + hy*hy + hz*hz)
+                if hmag > 0:
+                    hx, hy, hz = hx/hmag, hy/hmag, hz/hmag
+                    spec = max(0, dx * hx + dy * hy + nz * hz) ** shininess
+                else:
+                    spec = 0
+                # Final
+                shade = ambient + diffuse * ndotl + specular * spec
+                # Edge darkening (ambient occlusion)
+                edge = 1 - dist ** 2.5
+                color = tuple(min(255, int(base_color[i] * shade * edge)) for i in range(3))
+                # Specular highlight
+                if spec > 0.3:
+                    color = tuple(min(255, int(color[i] + 80 * spec)) for i in range(3))
+                draw.point((x, y), fill=color + (255,))
+
+
+# ============================================================
+# TEXTURE SIMULATION
+# ============================================================
+
+
+
+def skin_texture(img, x, y, w, h, color, density=0.03):
+    """Simulate skin texture (pores, subtle variation)."""
+    draw = ImageDraw.Draw(img)
+    for _ in range(int(w * h * density)):
+        px = random.randint(x, x + w - 1)
+        py = random.randint(y, y + h - 1)
+        # Small pore
+        r = random.choice([1, 1, 1, 2])
+        shade = random.randint(-15, 15)
+        c = tuple(max(0, min(255, color[i] + shade)) for i in range(3))
+        draw.ellipse([px, py, px + r, py + r], fill=c + (random.randint(100, 180),))
+
+
