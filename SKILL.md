@@ -1,6 +1,6 @@
 ---
 name: image-analyst
-description: Analyze, describe, and recreate images using code (Python PIL/Pillow, SVG, Canvas 2D). Use when you can't view images directly (no vision model), or when you need to extract colors, dimensions, pixel data, ASCII art, or draw illustrations programmatically. Includes tools for image analysis, color extraction, ASCII rendering, and code-based drawing. Supports 6 art styles: 3d_render, pixel_art, sketch, flat_vector, chibi, watercolor. Model-agnostic — works with any AI model.
+description: Analyze, describe, and recreate images using code (Python PIL/Pillow). Draw anatomy-accurate humans, animals, robots in 8 styles. Use when you can't view images directly, or need to extract colors, dimensions, pixel data, ASCII art, or draw illustrations programmatically. Model-agnostic — works with any AI model.
 license: MIT
 metadata:
   author: turtle
@@ -278,10 +278,22 @@ python scripts/universal_draw.py --subject robot --style 3d_render --output robo
 python scripts/universal_draw.py --list-styles
 ```
 
-### `draw_with_pil.py` — Drawing Template with Reusable Functions
+### `anatomy_draw.py` — Anatomy Drawing Engine
 ```bash
-python scripts/draw_with_pil.py --demo robot --output robot.png [--width 512] [--height 640]
+python scripts/anatomy_draw.py --subject human --output human.png [--width 400] [--height 600]
+python scripts/anatomy_draw.py --subject cat --output cat.png [--width 512] [--height 512]
+python scripts/anatomy_draw.py --list-subjects
 ```
+
+**Subjects:**
+- `human` — Standing human with 8-head proportions, pectorals, abs, limbs, joints
+- `cat` — Sitting cat with proper feline anatomy, ears, eyes, whiskers, tail
+
+**Anatomy Systems:**
+- **Human**: 8-head proportion system, shoulder/hip width ratios, limb segmentation
+- **Cat**: Feline proportions, triangular ears, almond eyes, digitigrade legs
+
+---
 
 ## Requirements
 
